@@ -15,6 +15,7 @@ namespace Libreria
 {
     public partial class Form1 : Form
     {
+        public static int id = 0;
         public Form1()
         {
             InitializeComponent();
@@ -80,6 +81,47 @@ namespace Libreria
         private void btnRegistrar_Click(object sender, EventArgs e)
         {
             AddLibro();
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            foreach(DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (row.Index == e.RowIndex)
+                {
+                    id = (int)row.Cells[0].Value;
+                    GetLibroById(id);
+                }
+            }
+        }
+        private async void GetLibroById(int id)
+        {
+            using(var client =new HttpClient())
+            {
+                string URI = "https://localhost:44369/Api/Libros/" + id.ToString();
+                HttpResponseMessage response = await client.GetAsync(URI);
+                if (response.IsSuccessStatusCode)
+                {
+                    var LibroJsonString = await response.Content.ReadAsStringAsync();
+                    LibrosViewModel oLibro = JsonConvert.DeserializeObject<LibrosViewModel>(LibroJsonString);
+
+                    txtISBN.Text = oLibro.ISBN;
+                    txtAutor.Text = oLibro.Autor;
+                    txtTemas.Text = oLibro.Temas;
+                    txtEditorial.Text = oLibro.Editorial;
+                    txtTitulo.Text = oLibro.Titulo;
+                }
+                else
+                {
+                    MessageBox.Show("Test");
+                    return;
+                }
+            }
+        }
+
+        private void btnLimpiar_Click(object sender, EventArgs e)
+        {
+            Limpiar();
         }
     }
 }
